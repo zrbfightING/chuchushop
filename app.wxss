@@ -1,0 +1,65 @@
+/* app.wxss - Global Styles for 楚楚小店 */
+page {
+  background: #fff7f0;
+  font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  color: #4a3c1a;
+}
+
+.container {
+  padding: 32rpx 24rpx;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #e09a5b;
+  margin-bottom: 32rpx;
+  text-align: center;
+  letter-spacing: 2rpx;
+}
+
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+}
+
+.product-card {
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 24rpx #f3e3d3;
+  padding: 24rpx;
+  display: flex;
+  align-items: center;
+  transition: box-shadow 0.2s;
+}
+
+.product-card:active {
+  box-shadow: 0 2rpx 8rpx #e0c9b0;
+}
+
+.product-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  object-fit: cover;
+  margin-right: 24rpx;
+  background: #f8eedd;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 36rpx;
+  font-weight: 500;
+  color: #4a3c1a;
+  margin-bottom: 8rpx;
+}
+
+.product-price {
+  font-size: 32rpx;
+  color: #e09a5b;
+  font-weight: bold;
+}

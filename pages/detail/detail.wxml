@@ -1,0 +1,8 @@
+<view class="container">
+  <image class="detail-image" src="{{product.image}}" mode="aspectFill"></image>
+  <view class="detail-info">
+    <view class="detail-name">{{product.name}}</view>
+    <view class="detail-price">￥{{product.price}}</view>
+    <view class="detail-desc">{{product.desc}}</view>
+  </view>
+</view>

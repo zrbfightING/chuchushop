@@ -1,0 +1,12 @@
+/* pages/index/index.wxss */
+.product-list {
+  margin-top: 24rpx;
+}
+
+.product-card {
+  margin-bottom: 0;
+}
+
+.product-image {
+  border: 2rpx solid #f3e3d3;
+}

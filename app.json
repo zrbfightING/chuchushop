@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/detail/detail"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#fff7f0",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "楚楚小店",
+    "backgroundColor": "#fff7f0",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

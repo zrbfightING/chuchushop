@@ -1,0 +1,14 @@
+<view class="container">
+  <view class="title">楚楚小店</view>
+  <view class="product-list">
+    <block wx:for="{{products}}" wx:key="id">
+      <view class="product-card" bindtap="goDetail" data-id="{{item.id}}">
+        <image class="product-image" src="{{item.image}}" mode="aspectFill"></image>
+        <view class="product-info">
+          <view class="product-name">{{item.name}}</view>
+          <view class="product-price">￥{{item.price}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>
