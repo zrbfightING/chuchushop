@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "name": "楚楚手工香皂",
+    "image": "https://your-image-host/soap.jpg",
+    "price": 28,
+    "desc": "天然植物精油手工皂，温和洁净，适合全家使用。",
+    "detail": "【主要成分】橄榄油、椰子油、薰衣草精油等。<br>【适用人群】敏感肌、婴幼儿均可使用。<br>【使用方法】湿润后揉搓起泡，轻柔清洁后用清水洗净。<br><img src='https://your-image-host/soap-detail.jpg' style='width:100%;border-radius:8px;margin-top:12px;'>"
+  }
+]

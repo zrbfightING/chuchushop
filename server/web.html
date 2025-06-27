@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>楚楚小店商品展示</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 如需自定义字体，请使用本地字体或国内可用的 CDN -->
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #fff7f0 0%, #ffe5d0 100%);
+      font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+      color: #4a3c1a;
+    }
+    .header {
+      width: 100%;
+      background: #fff3e0;
+      box-shadow: 0 2px 12px #f3e3d3;
+      padding: 32px 0 24px 0;
+      text-align: center;
+      border-bottom-left-radius: 32px;
+      border-bottom-right-radius: 32px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .header-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #ffe5d0;
+      display: inline-block;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px #f3e3d3;
+      background-image: url('/house.png'); /* 请将 house.png 放在 server 目录下 */
+      background-size: 60% 60%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .header-title {
+      font-size: 2.4rem;
+      color: #e09a5b;
+      font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 16px 32px 16px;
+      background: rgba(255,255,255,0.85);
+      border-radius: 24px;
+      box-shadow: 0 4px 32px #f3e3d3;
+    }
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      margin-top: 24px;
+    }
+    .product-card {
+      display: flex;
+      align-items: center;
+      background: #fff7f0;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px #f3e3d3;
+      padding: 20px;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .product-card:hover {
+      box-shadow: 0 8px 32px #e0c9b0;
+      transform: scale(1.025);
+      z-index: 2;
+    }
+    .product-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-right: 28px;
+      background: #f8eedd;
+      box-shadow: 0 2px 8px #f3e3d3;
+      border: 2px solid #ffe5d0;
+    }
+    .product-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .product-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #e09a5b;
+      margin-bottom: 8px;
+      font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .product-price {
+      font-size: 1.2rem;
+      color: #e09a5b;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .product-desc {
+      font-size: 1rem;
+      color: #6d5b3c;
+      margin-top: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 320px;
+    }
+    /* Modal styles */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.25);
+      z-index: 1000;
+      animation: fadeIn 0.3s;
+    }
+    .modal-bg.show { display: block; }
+    .modal {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px #e0c9b0;
+      padding: 40px 24px 24px 24px;
+      min-width: 320px;
+      max-width: 95vw;
+      animation: popIn 0.3s;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn { from { transform: translate(-50%,-60%) scale(0.95); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+    .modal-image {
+      width: 180px;
+      height: 180px;
+      border-radius: 16px;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto 24px auto;
+      background: #f8eedd;
+      box-shadow: 0 2px 8px #f3e3d3;
+    }
+    .modal-name {
+      font-size: 1.7rem;
+      color: #e09a5b;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 12px;
+      font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    }
+    .modal-price {
+      font-size: 1.2rem;
+      color: #e09a5b;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .modal-desc {
+      font-size: 1.1rem;
+      color: #4a3c1a;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .modal-detail {
+      font-size: 1rem;
+      color: #4a3c1a;
+      background: #fff7f0;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px #f3e3d3;
+    }
+    .modal-close {
+      display: block;
+      margin: 0 auto;
+      padding: 10px 32px;
+      background: linear-gradient(90deg, #e09a5b 60%, #ffe5d0 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+      box-shadow: 0 2px 8px #f3e3d3;
+      transition: background 0.2s;
+    }
+    .modal-close:hover {
+      background: linear-gradient(90deg, #e09a5b 80%, #ffe5d0 100%);
+    }
+    @media (max-width: 500px) {
+      .container { padding: 8px; }
+      .modal { padding: 16px 4px; }
+      .product-image { width: 70px; height: 70px; margin-right: 12px; }
+      .modal-image { width: 120px; height: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-logo"></div>
+    <div class="header-title">楚楚小店</div>
+  </div>
+  <div class="container">
+    <div class="product-list" id="product-list"></div>
+  </div>
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal" id="modal">
+      <img class="modal-image" id="modal-image" src="" alt="">
+      <div class="modal-name" id="modal-name"></div>
+      <div class="modal-price" id="modal-price"></div>
+      <div class="modal-desc" id="modal-desc"></div>
+      <div class="modal-detail" id="modal-detail"></div>
+      <button class="modal-close" onclick="closeModal()">关闭</button>
+    </div>
+  </div>
+  <script>
+    let products = [];
+    fetch('/products')
+      .then(res => res.json())
+      .then(list => {
+        products = list;
+        const box = document.getElementById('product-list');
+        box.innerHTML = list.map((item, idx) => `
+          <div class="product-card" onclick="showDetail(${idx})">
+            <img class="product-image" src="${item.image}" alt="${item.name}">
+            <div class="product-info">
+              <div class="product-name">${item.name}</div>
+              <div class="product-price">￥${item.price}</div>
+              <div class="product-desc">${item.desc}</div>
+            </div>
+          </div>
+        `).join('');
+      })
+      .catch(() => {
+        document.getElementById('product-list').innerHTML = '<div>商品加载失败</div>';
+      });
+
+    function showDetail(idx) {
+      const p = products[idx];
+      document.getElementById('modal-image').src = p.image;
+      document.getElementById('modal-name').textContent = p.name;
+      document.getElementById('modal-price').textContent = '￥' + p.price;
+      document.getElementById('modal-desc').textContent = p.desc;
+      document.getElementById('modal-detail').innerHTML = p.detail || '';
+      document.getElementById('modal-bg').classList.add('show');
+    }
+    function closeModal() {
+      document.getElementById('modal-bg').classList.remove('show');
+    }
+    // 点击遮罩关闭
+    document.getElementById('modal-bg').onclick = function(e) {
+      if (e.target === this) closeModal();
+    }
+  </script>
+</body>
+</html>

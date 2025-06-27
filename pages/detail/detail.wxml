@@ -4,5 +4,6 @@
     <view class="detail-name">{{product.name}}</view>
     <view class="detail-price">￥{{product.price}}</view>
     <view class="detail-desc">{{product.desc}}</view>
+    <rich-text nodes="{{product.detail}}"></rich-text>
   </view>
 </view>
