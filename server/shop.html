@@ -234,6 +234,69 @@
       .header-logo-img { width: 48px; height: 48px; padding: 4px; }
       .modal-detail-images img { max-width: 98vw; }
     }
+    .frog-pet-container {
+      margin: 32px auto 0 auto;
+      max-width: 420px;
+      background: #e0f7fa;
+      border-radius: 18px;
+      box-shadow: 0 2px 12px #b2ebf2;
+      padding: 18px 12px 18px 12px;
+      border: 1.5px solid #b2ebf2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .frog-pet-header {
+      font-size: 1.18rem;
+      color: #009688;
+      font-weight: bold;
+      margin-bottom: 2px;
+      letter-spacing: 1px;
+    }
+    .frog-pet-visual {
+      font-size: 3.2rem;
+      margin: 8px 0 0 0;
+      user-select: none;
+      transition: transform 0.2s;
+    }
+    .frog-pet-status {
+      font-size: 1.01rem;
+      color: #00796b;
+      margin: 4px 0 0 0;
+      text-align: center;
+      min-height: 22px;
+    }
+    .frog-pet-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 0 0;
+      justify-content: center;
+    }
+    .frog-pet-actions button {
+      background: linear-gradient(90deg, #4dd0e1 60%, #b2ebf2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      padding: 6px 16px;
+      cursor: pointer;
+      font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+      box-shadow: 0 2px 8px #b2ebf2;
+      transition: background 0.2s;
+    }
+    .frog-pet-actions button:hover {
+      background: linear-gradient(90deg, #009688 80%, #b2ebf2 100%);
+    }
+    .frog-pet-action-text {
+      font-size: 1.01rem;
+      color: #00695c;
+      margin: 8px 0 0 0;
+      min-height: 22px;
+      text-align: center;
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
@@ -243,6 +306,21 @@
   </div>
   <div class="container">
     <div class="product-list" id="product-list"></div>
+    <!-- 电子宠物区 -->
+    <div id="frog-pet" class="frog-pet-container">
+      <div class="frog-pet-header">🐸 电子宠物 · 养蛙</div>
+      <div id="frog-pet-visual" class="frog-pet-visual">🐸</div>
+      <div id="frog-pet-status" class="frog-pet-status"></div>
+      <div class="frog-pet-actions">
+        <button onclick="frogFeed('grasshopper')">喂蚱蜢</button>
+        <button onclick="frogFeed('earthworm')">喂蚯蚓</button>
+        <button onclick="frogFeed('mealworm')">喂面包虫</button>
+        <button onclick="frogFeed('frogfood')">喂蛙粮</button>
+        <button onclick="frogChangeWater()">换水</button>
+        <button onclick="frogPlay()">逗蛙</button>
+      </div>
+      <div id="frog-pet-action-text" class="frog-pet-action-text"></div>
+    </div>
   </div>
   <div class="modal-bg" id="modal-bg">
     <div class="modal" id="modal">
@@ -308,6 +386,137 @@
     document.getElementById('modal-bg').onclick = function(e) {
       if (e.target === this) closeModal();
     }
+
+    // ===== 电子宠物 · 养蛙 =====
+    const FROG_PET_KEY = 'frog-pet-state-v1';
+
+    function getDefaultFrogState() {
+      return {
+        lastFeedTime: null,
+        feedCountToday: 0,
+        lastWaterChange: null,
+        lastPlayTime: null,
+        lastAction: null,
+        lastFood: null,
+        isDead: false
+      };
+    }
+
+    function loadFrogState() {
+      try {
+        const s = localStorage.getItem(FROG_PET_KEY);
+        if (s) return JSON.parse(s);
+      } catch {}
+      return getDefaultFrogState();
+    }
+
+    function saveFrogState(state) {
+      localStorage.setItem(FROG_PET_KEY, JSON.stringify(state));
+    }
+
+    function renderFrogPet(state, actionText = '') {
+      const visual = document.getElementById('frog-pet-visual');
+      const status = document.getElementById('frog-pet-status');
+      const action = document.getElementById('frog-pet-action-text');
+      if (state.isDead) {
+        visual.textContent = '💀🐸';
+        status.textContent = '你的蛙已经去世了...';
+        action.textContent = actionText || '';
+        setFrogPetActionsDisabled(true);
+      } else {
+        if (state.lastAction === 'feed') {
+          visual.textContent = '😋🐸';
+        } else if (state.lastAction === 'change-water') {
+          visual.textContent = '💧🐸';
+        } else if (state.lastAction === 'play') {
+          visual.textContent = '🎵🐸';
+        } else {
+          visual.textContent = '🐸';
+        }
+        let desc = [];
+        if (state.lastFeedTime) {
+          const d = new Date(state.lastFeedTime);
+          desc.push('上次喂食：' + d.toLocaleString());
+        }
+        if (state.lastWaterChange) {
+          const d = new Date(state.lastWaterChange);
+          desc.push('上次换水：' + d.toLocaleString());
+        }
+        if (state.lastPlayTime) {
+          const d = new Date(state.lastPlayTime);
+          desc.push('上次逗蛙：' + d.toLocaleString());
+        }
+        status.textContent = desc.length ? desc.join(' | ') : '还没有互动，快来养蛙吧！';
+        action.textContent = actionText || '';
+        setFrogPetActionsDisabled(false);
+      }
+    }
+
+    function setFrogPetActionsDisabled(disabled) {
+      document.querySelectorAll('.frog-pet-actions button').forEach(btn => {
+        btn.disabled = disabled;
+        btn.style.opacity = disabled ? 0.5 : 1;
+      });
+    }
+
+    function frogFeed(food) {
+      const state = loadFrogState();
+      if (state.isDead) return;
+      fetch('/frog/feed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state, food })
+      })
+      .then(res => res.json())
+      .then(data => {
+        saveFrogState(data.state);
+        renderFrogPet(data.state, data.action);
+      })
+      .catch(() => {
+        renderFrogPet(state, '喂养失败，请稍后重试');
+      });
+    }
+
+    function frogChangeWater() {
+      const state = loadFrogState();
+      if (state.isDead) return;
+      fetch('/frog/change-water', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state })
+      })
+      .then(res => res.json())
+      .then(data => {
+        saveFrogState(data.state);
+        renderFrogPet(data.state, data.action);
+      })
+      .catch(() => {
+        renderFrogPet(state, '换水失败，请稍后重试');
+      });
+    }
+
+    function frogPlay() {
+      const state = loadFrogState();
+      if (state.isDead) return;
+      fetch('/frog/play', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state })
+      })
+      .then(res => res.json())
+      .then(data => {
+        saveFrogState(data.state);
+        renderFrogPet(data.state, data.action);
+      })
+      .catch(() => {
+        renderFrogPet(state, '逗蛙失败，请稍后重试');
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const state = loadFrogState();
+      renderFrogPet(state);
+    });
   </script>
 </body>
 </html>

@@ -9,6 +9,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// 挂载青蛙电子宠物API
+app.use('/frog', require('./frog'));
+
 const PRODUCTS_PATH = path.join(__dirname, 'products.json');
 
 // 读取商品数据
