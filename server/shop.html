@@ -321,6 +321,7 @@
       </div>
       <div id="frog-pet-action-text" class="frog-pet-action-text"></div>
     </div>
+    <div id="frog-pet-restart" style="margin-top:10px;"></div>
   </div>
   <div class="modal-bg" id="modal-bg">
     <div class="modal" id="modal">
@@ -418,11 +419,14 @@
       const visual = document.getElementById('frog-pet-visual');
       const status = document.getElementById('frog-pet-status');
       const action = document.getElementById('frog-pet-action-text');
+      const restartDiv = document.getElementById('frog-pet-restart');
       if (state.isDead) {
         visual.textContent = '💀🐸';
         status.textContent = '你的蛙已经去世了...';
         action.textContent = actionText || '';
         setFrogPetActionsDisabled(true);
+        // 显示重养按钮
+        restartDiv.innerHTML = '<button onclick="frogRestart()" style="background:linear-gradient(90deg,#4dd0e1 60%,#b2ebf2 100%);color:#fff;border:none;border-radius:8px;font-size:1rem;padding:6px 16px;cursor:pointer;font-family:\'PingFang SC\',\'Microsoft YaHei\',Arial,sans-serif;box-shadow:0 2px 8px #b2ebf2;transition:background 0.2s;">重养一只</button>';
       } else {
         if (state.lastAction === 'feed') {
           visual.textContent = '😋🐸';
@@ -449,6 +453,7 @@
         status.textContent = desc.length ? desc.join(' | ') : '还没有互动，快来养蛙吧！';
         action.textContent = actionText || '';
         setFrogPetActionsDisabled(false);
+        restartDiv.innerHTML = '';
       }
     }
 
@@ -510,6 +515,20 @@
       })
       .catch(() => {
         renderFrogPet(state, '逗蛙失败，请稍后重试');
+      });
+    }
+
+    function frogRestart() {
+      fetch('/frog/restart', {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(data => {
+        saveFrogState(data.state);
+        renderFrogPet(data.state, data.action);
+      })
+      .catch(() => {
+        renderFrogPet(getDefaultFrogState(), '重养失败，请稍后重试');
       });
     }
 

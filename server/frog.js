@@ -125,4 +125,26 @@ router.post('/play', (req, res) => {
   });
 });
 
+/**
+ * 重养一只新蛙，重置所有状态
+ */
+router.post('/restart', (req, res) => {
+  // 可根据需要自定义初始属性
+  const initialState = {
+    feedCountToday: 0,
+    lastFeedTime: null,
+    lastWaterChange: null,
+    lastPlayTime: null,
+    lastAction: null,
+    lastFood: null,
+    isDead: false
+  };
+  res.json({
+    state: initialState,
+    action: '你又领养了一只新蛙，开始新的养成之旅！',
+    dead: false,
+    reason: null
+  });
+});
+
 module.exports = router;
