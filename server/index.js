@@ -25,7 +25,12 @@ app.use(express.static(__dirname)); // 允许访问本地静态文件（如 hous
 
 // 静态网页展示
 app.get('/web', (req, res) => {
-  res.sendFile(path.join(__dirname, 'web.html'));
+  res.sendFile(path.join(__dirname, 'shop.html'));
+});
+
+// 新增 /shop 路由，兼容直接访问
+app.get('/shop', (req, res) => {
+  res.sendFile(path.join(__dirname, 'shop.html'));
 });
 
 // 获取所有商品
