@@ -32,6 +32,8 @@ async function chatWithFrog(userMessage) {
     temperature: 0.8
   });
 
+  console.debug('[openrouter] 请求参数:', postData);
+
   return new Promise((resolve) => {
     const url = new URL(OPENROUTER_API_URL);
     const options = {
@@ -49,6 +51,8 @@ async function chatWithFrog(userMessage) {
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
+        console.debug('[openrouter] 响应状态码:', res.statusCode);
+        console.debug('[openrouter] 响应内容:', data);
         try {
           const json = JSON.parse(data);
           const choices = json && json.choices;
@@ -61,14 +65,21 @@ async function chatWithFrog(userMessage) {
           ) {
             reply = choices[0].message.content.trim();
           }
+          if (!reply) {
+            console.warn('[openrouter] 未获取到有效AI回复，返回呱');
+          }
           resolve(reply || '呱');
         } catch (e) {
+          console.error('[openrouter] 解析响应出错:', e);
           resolve('呱');
         }
       });
     });
 
-    req.on('error', () => resolve('呱'));
+    req.on('error', (err) => {
+      console.error('[openrouter] 请求异常:', err);
+      resolve('呱');
+    });
     req.write(postData);
     req.end();
   });
