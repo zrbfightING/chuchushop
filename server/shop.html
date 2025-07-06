@@ -475,6 +475,8 @@
     function frogFeed(food) {
       const state = loadFrogState();
       if (state.isDead) return;
+      setFrogPetActionsDisabled(true);
+      renderFrogPet(state, '喂食中...');
       fetch('/frog/feed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -493,6 +495,8 @@
     function frogChangeWater() {
       const state = loadFrogState();
       if (state.isDead) return;
+      setFrogPetActionsDisabled(true);
+      renderFrogPet(state, '换水中...');
       fetch('/frog/change-water', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -511,6 +515,8 @@
     function frogPlay() {
       const state = loadFrogState();
       if (state.isDead) return;
+      setFrogPetActionsDisabled(true);
+      renderFrogPet(state, '逗蛙中...');
       fetch('/frog/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
