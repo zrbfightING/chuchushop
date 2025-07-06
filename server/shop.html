@@ -322,6 +322,12 @@
       <div id="frog-pet-action-text" class="frog-pet-action-text"></div>
     </div>
     <div id="frog-pet-restart" style="margin-top:10px;"></div>
+    <!-- 养蛙对话区 -->
+    <div id="frog-chat-area" style="margin:18px 0 0 0;display:flex;gap:8px;align-items:center;justify-content:center;">
+      <input id="frog-chat-input" type="text" placeholder="和蛙聊聊..." style="flex:1;max-width:220px;padding:6px 10px;border-radius:8px;border:1px solid #b2ebf2;font-size:1rem;">
+      <button onclick="frogChat()" style="background:linear-gradient(90deg,#4dd0e1 60%,#b2ebf2 100%);color:#fff;border:none;border-radius:8px;font-size:1rem;padding:6px 16px;cursor:pointer;font-family:'PingFang SC','Microsoft YaHei',Arial,sans-serif;box-shadow:0 2px 8px #b2ebf2;transition:background 0.2s;">发送</button>
+    </div>
+    <div id="frog-chat-reply" style="margin:8px 0 0 0;min-height:22px;color:#00796b;text-align:center;font-size:1.01rem;"></div>
   </div>
   <div class="modal-bg" id="modal-bg">
     <div class="modal" id="modal">
@@ -415,18 +421,19 @@
       localStorage.setItem(FROG_PET_KEY, JSON.stringify(state));
     }
 
-    function renderFrogPet(state, actionText = '') {
+    function renderFrogPet(state, actionText = '', aiReply = '') {
       const visual = document.getElementById('frog-pet-visual');
       const status = document.getElementById('frog-pet-status');
       const action = document.getElementById('frog-pet-action-text');
       const restartDiv = document.getElementById('frog-pet-restart');
+      const chatReply = document.getElementById('frog-chat-reply');
       if (state.isDead) {
         visual.textContent = '💀🐸';
         status.textContent = '你的蛙已经去世了...';
         action.textContent = actionText || '';
         setFrogPetActionsDisabled(true);
-        // 显示重养按钮
         restartDiv.innerHTML = '<button onclick="frogRestart()" style="background:linear-gradient(90deg,#4dd0e1 60%,#b2ebf2 100%);color:#fff;border:none;border-radius:8px;font-size:1rem;padding:6px 16px;cursor:pointer;font-family:\'PingFang SC\',\'Microsoft YaHei\',Arial,sans-serif;box-shadow:0 2px 8px #b2ebf2;transition:background 0.2s;">重养一只</button>';
+        chatReply.textContent = '';
       } else {
         if (state.lastAction === 'feed') {
           visual.textContent = '😋🐸';
@@ -451,9 +458,10 @@
           desc.push('上次逗蛙：' + d.toLocaleString());
         }
         status.textContent = desc.length ? desc.join(' | ') : '还没有互动，快来养蛙吧！';
-        action.textContent = actionText || '';
+        action.innerHTML = (actionText ? actionText + '<br>' : '') + (aiReply ? '<span style="color:#009688;">' + aiReply + '</span>' : '');
         setFrogPetActionsDisabled(false);
         restartDiv.innerHTML = '';
+        chatReply.textContent = '';
       }
     }
 
@@ -475,7 +483,7 @@
       .then(res => res.json())
       .then(data => {
         saveFrogState(data.state);
-        renderFrogPet(data.state, data.action);
+        renderFrogPet(data.state, data.action, data.aiReply);
       })
       .catch(() => {
         renderFrogPet(state, '喂养失败，请稍后重试');
@@ -493,7 +501,7 @@
       .then(res => res.json())
       .then(data => {
         saveFrogState(data.state);
-        renderFrogPet(data.state, data.action);
+        renderFrogPet(data.state, data.action, data.aiReply);
       })
       .catch(() => {
         renderFrogPet(state, '换水失败，请稍后重试');
@@ -511,7 +519,7 @@
       .then(res => res.json())
       .then(data => {
         saveFrogState(data.state);
-        renderFrogPet(data.state, data.action);
+        renderFrogPet(data.state, data.action, data.aiReply);
       })
       .catch(() => {
         renderFrogPet(state, '逗蛙失败，请稍后重试');
@@ -531,6 +539,35 @@
         renderFrogPet(getDefaultFrogState(), '重养失败，请稍后重试');
       });
     }
+
+    // 养蛙对话功能
+    function frogChat() {
+      const input = document.getElementById('frog-chat-input');
+      const replyDiv = document.getElementById('frog-chat-reply');
+      const msg = input.value.trim();
+      if (!msg) {
+        replyDiv.textContent = '请输入内容';
+        return;
+      }
+      replyDiv.textContent = '蛙思考中...';
+      fetch('/frog/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      })
+      .then(res => res.json())
+      .then(data => {
+        replyDiv.textContent = data.aiReply || '呱';
+        input.value = '';
+      })
+      .catch(() => {
+        replyDiv.textContent = '呱';
+      });
+    }
+
+    document.getElementById('frog-chat-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') frogChat();
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
       const state = loadFrogState();

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { chatWithFrog } = require('./openrouter');
 
 /**
  * 死亡判定逻辑
@@ -41,7 +42,7 @@ function checkFrogDeath(state, action) {
 }
 
 // 喂养接口
-router.post('/feed', (req, res) => {
+router.post('/feed', async (req, res) => {
   const { state, food } = req.body;
   const now = Date.now();
   const foodMap = {
@@ -71,16 +72,23 @@ router.post('/feed', (req, res) => {
     newState.isDead = true;
     actionText = death.reason;
   }
+  // AI 回复
+  let aiReply = await chatWithFrog(
+    death.dead
+      ? `我喂了你${foodMap[food] || food}，你${death.reason}，你还有什么想说的吗？`
+      : `我喂了你${foodMap[food] || food}，你感觉怎么样？`
+  );
   res.json({
     state: newState,
     action: actionText,
+    aiReply,
     dead: !!newState.isDead,
     reason: death.reason || null
   });
 });
 
 // 换水接口
-router.post('/change-water', (req, res) => {
+router.post('/change-water', async (req, res) => {
   const { state } = req.body;
   const now = Date.now();
   const newState = {
@@ -94,16 +102,22 @@ router.post('/change-water', (req, res) => {
     newState.isDead = true;
     actionText = death.reason;
   }
+  let aiReply = await chatWithFrog(
+    death.dead
+      ? `我帮你换了水，你${death.reason}，你还有什么想说的吗？`
+      : '我帮你换了水，你感觉如何？'
+  );
   res.json({
     state: newState,
     action: actionText,
+    aiReply,
     dead: !!newState.isDead,
     reason: death.reason || null
   });
 });
 
 // 逗蛙接口
-router.post('/play', (req, res) => {
+router.post('/play', async (req, res) => {
   const { state } = req.body;
   const now = Date.now();
   const newState = {
@@ -117,12 +131,28 @@ router.post('/play', (req, res) => {
     newState.isDead = true;
     actionText = death.reason;
   }
+  let aiReply = await chatWithFrog(
+    death.dead
+      ? `我刚刚逗你玩，你${death.reason}，你还有什么想说的吗？`
+      : '我刚刚逗你玩，你现在心情怎么样？'
+  );
   res.json({
     state: newState,
     action: actionText,
+    aiReply,
     dead: !!newState.isDead,
     reason: death.reason || null
   });
+});
+
+/**
+ * 对话接口：用户可直接与蛙对话
+ * POST /frog/chat { message: string }
+ */
+router.post('/chat', async (req, res) => {
+  const { message } = req.body;
+  let aiReply = await chatWithFrog(message || '');
+  res.json({ aiReply });
 });
 
 /**
@@ -142,6 +172,7 @@ router.post('/restart', (req, res) => {
   res.json({
     state: initialState,
     action: '你又领养了一只新蛙，开始新的养成之旅！',
+    aiReply: '你好，我是你的新蛙，今后请多关照。', // 可选：首次AI欢迎语
     dead: false,
     reason: null
   });
