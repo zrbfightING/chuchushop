@@ -22,7 +22,9 @@ async function chatWithFrog(userMessage) {
     return '呱';
   }
   const systemPrompt = getSystemPrompt();
-  const modelName = 'openrouter/cinematika-7b'; // 推荐免费模型，如需更换请查阅 openrouter 官网
+  // 推荐免费模型，如需更换请查阅 openrouter 官网模型列表
+  // 推荐免费模型，如需更换请查阅 openrouter 官网模型列表
+  const modelName = 'deepseek/deepseek-chat-v3-0324:free';
   const postData = JSON.stringify({
     model: modelName,
     messages: [
