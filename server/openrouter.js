@@ -22,8 +22,9 @@ async function chatWithFrog(userMessage) {
     return '呱';
   }
   const systemPrompt = getSystemPrompt();
+  const modelName = 'openrouter/cinematika-7b'; // 推荐免费模型，如需更换请查阅 openrouter 官网
   const postData = JSON.stringify({
-    model: 'openai/gpt-3.5-turbo',
+    model: modelName,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessage }
@@ -32,6 +33,7 @@ async function chatWithFrog(userMessage) {
     temperature: 0.8
   });
 
+  console.debug('[openrouter] 使用模型:', modelName);
   console.debug('[openrouter] 请求参数:', postData);
 
   return new Promise((resolve) => {
