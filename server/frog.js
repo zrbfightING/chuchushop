@@ -86,10 +86,18 @@ router.post('/feed', async (req, res) => {
     actionText = death.reason;
   }
   // AI 回复
+  // 判断是否需要提醒死亡逻辑和统计
+  let needWarn = false;
+  // 1. 喂食当天>=3次
+  if (newState.feedCountToday >= 3) needWarn = true;
+  // 2. 距离上次喂食/换水接近一周
+  const almostAWeek = 6.5 * 24 * 3600 * 1000;
+  if (now - (newState.lastFeedTime || 0) > almostAWeek) needWarn = true;
+  if (now - (newState.lastWaterChange || 0) > almostAWeek) needWarn = true;
   let aiReply = await chatWithFrog(
     death.dead
       ? `我喂了你${foodMap[food] || food}，你${death.reason}，${feedInfo} ${waterInfo} ${deathLogic} 你还有什么想说的吗？`
-      : `我喂了你${foodMap[food] || food}，${feedInfo} ${waterInfo} ${deathLogic} 你感觉怎么样？`
+      : `我喂了你${foodMap[food] || food}，${needWarn ? feedInfo + " " + waterInfo + " " + deathLogic : ""}你感觉怎么样？`
   );
   res.json({
     state: newState,
@@ -137,10 +145,16 @@ router.post('/change-water', async (req, res) => {
     newState.isDead = true;
     actionText = death.reason;
   }
+  // 判断是否需要提醒死亡逻辑和统计
+  let needWarn = false;
+  if (newState.waterChangeCountToday >= 3) needWarn = true;
+  const almostAWeek = 6.5 * 24 * 3600 * 1000;
+  if (now - (newState.lastFeedTime || 0) > almostAWeek) needWarn = true;
+  if (now - (newState.lastWaterChange || 0) > almostAWeek) needWarn = true;
   let aiReply = await chatWithFrog(
     death.dead
       ? `我帮你换了水，你${death.reason}，${feedInfo} ${waterInfo} ${deathLogic} 你还有什么想说的吗？`
-      : `我帮你换了水，${feedInfo} ${waterInfo} ${deathLogic} 你感觉如何？`
+      : `我帮你换了水，${needWarn ? feedInfo + " " + waterInfo + " " + deathLogic : ""}你感觉如何？`
   );
   res.json({
     state: newState,
@@ -170,10 +184,16 @@ router.post('/play', async (req, res) => {
     newState.isDead = true;
     actionText = death.reason;
   }
+  // 判断是否需要提醒死亡逻辑和统计
+  let needWarn = false;
+  const almostAWeek = 6.5 * 24 * 3600 * 1000;
+  if ((newState.feedCountToday || 0) >= 3) needWarn = true;
+  if (now - (newState.lastFeedTime || 0) > almostAWeek) needWarn = true;
+  if (now - (newState.lastWaterChange || 0) > almostAWeek) needWarn = true;
   let aiReply = await chatWithFrog(
     death.dead
       ? `我刚刚逗你玩，你${death.reason}，${feedInfo} ${waterInfo} ${deathLogic} 你还有什么想说的吗？`
-      : `我刚刚逗你玩，${feedInfo} ${waterInfo} ${deathLogic} 你现在心情怎么样？`
+      : `我刚刚逗你玩，${needWarn ? feedInfo + " " + waterInfo + " " + deathLogic : ""}你现在心情怎么样？`
   );
   res.json({
     state: newState,
