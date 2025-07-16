@@ -252,5 +252,59 @@ function getWeekString(date) {
   const week = Math.ceil(dayOfYear / 7);
   return `${year}-${week}`;
 }
+/**
+ * 获取蛙的当前展示媒体（图片/视频）
+ * POST /frog/media { action: 'idle'|'feed'|'play', food?: string }
+ * 返回: { mediaType: 'image'|'video', mediaUrl: string }
+ */
+router.post('/media', (req, res) => {
+  const { action, food, prevMediaFile } = req.body;
+  // 资源基路径
+  const base = '/images/';
+  let mediaType = 'image';
+  let mediaUrl = '';
+  let mediaFile = '';
+  if (action === 'idle') {
+    // 随机返回三种之一，避免与上次相同
+    let idleMedia = [
+      { type: 'image', file: 'frog_sleep_4.png' },
+      { type: 'image', file: 'frog_sleep_5.png' },
+      { type: 'video', file: 'frog_sleep.mp4' }
+    ];
+    let pool = idleMedia;
+    if (prevMediaFile) {
+      pool = idleMedia.filter(item => item.file !== prevMediaFile);
+      if (pool.length === 0) pool = idleMedia; // 万一全被排除
+    }
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    mediaType = pick.type;
+    mediaFile = pick.file;
+    mediaUrl = base + pick.file;
+  } else if (action === 'feed') {
+    if (food === 'grasshopper') {
+      mediaType = 'video';
+      mediaFile = 'frog_eat_hopper.mp4';
+      mediaUrl = base + 'frog_eat_hopper.mp4';
+    } else {
+      mediaType = 'video';
+      mediaFile = 'frog_eat.mp4';
+      mediaUrl = base + 'frog_eat.mp4';
+    }
+  } else if (action === 'play') {
+    mediaType = 'video';
+    mediaFile = 'frog_paly_1.mp4';
+    mediaUrl = base + 'frog_paly_1.mp4';
+  } else if (action === 'change-water') {
+    mediaType = 'video';
+    mediaFile = 'frog_jump.mp4';
+    mediaUrl = base + 'frog_jump.mp4';
+  } else {
+    // 默认返回静态图
+    mediaType = 'image';
+    mediaFile = 'frog_sleep_4.png';
+    mediaUrl = base + 'frog_sleep_4.png';
+  }
+  res.json({ mediaType, mediaUrl, mediaFile });
+});
 
 module.exports = router;

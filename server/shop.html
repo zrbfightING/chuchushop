@@ -421,12 +421,21 @@
       localStorage.setItem(FROG_PET_KEY, JSON.stringify(state));
     }
 
-    function renderFrogPet(state, actionText = '', aiReply = '') {
+    // 控制idle定时器
+    let frogIdleTimer = null;
+    // 记录当前idle媒体文件名，避免重复
+    let frogIdleMediaFile = null;
+    async function renderFrogPet(state, actionText = '', aiReply = '') {
       const visual = document.getElementById('frog-pet-visual');
       const status = document.getElementById('frog-pet-status');
       const action = document.getElementById('frog-pet-action-text');
       const restartDiv = document.getElementById('frog-pet-restart');
       const chatReply = document.getElementById('frog-chat-reply');
+      // 清除idle定时器
+      if (frogIdleTimer) {
+        clearTimeout(frogIdleTimer);
+        frogIdleTimer = null;
+      }
       if (state.isDead) {
         visual.textContent = '💀🐸';
         status.textContent = '你的蛙已经去世了...';
@@ -435,14 +444,75 @@
         restartDiv.innerHTML = '<button onclick="frogRestart()" style="background:linear-gradient(90deg,#4dd0e1 60%,#b2ebf2 100%);color:#fff;border:none;border-radius:8px;font-size:1rem;padding:6px 16px;cursor:pointer;font-family:\'PingFang SC\',\'Microsoft YaHei\',Arial,sans-serif;box-shadow:0 2px 8px #b2ebf2;transition:background 0.2s;">重养一只</button>';
         chatReply.textContent = '';
       } else {
+        // 获取媒体类型和地址
+        let actionType = 'idle';
+        let food = undefined;
         if (state.lastAction === 'feed') {
-          visual.textContent = '😋🐸';
-        } else if (state.lastAction === 'change-water') {
-          visual.textContent = '💧🐸';
+          actionType = 'feed';
+          food = state.lastFood;
         } else if (state.lastAction === 'play') {
-          visual.textContent = '🎵🐸';
+          actionType = 'play';
+        } else if (state.lastAction === 'change-water') {
+          actionType = 'change-water';
         } else {
-          visual.textContent = '🐸';
+          actionType = 'idle';
+        }
+        // 所有状态都请求媒体
+          try {
+            // idle时传递上一次媒体文件名，避免重复
+            let body = { action: actionType, food };
+            if (actionType === 'idle' && frogIdleMediaFile) {
+              body.prevMediaFile = frogIdleMediaFile;
+            }
+            const res = await fetch('/frog/media', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.mediaType === 'image') {
+              visual.innerHTML = `<img src="${data.mediaUrl}" alt="frog" style="max-width:120px;max-height:120px;border-radius:10px;box-shadow:0 2px 8px #b2ebf2;background:#f8eedd;">`;
+              if (actionType === 'idle') {
+                frogIdleMediaFile = data.mediaFile || null;
+                frogIdleTimer = setTimeout(() => {
+                  renderFrogPet(state);
+                }, 10000);
+              }
+            } else if (data.mediaType === 'video') {
+              if (actionType === 'idle') {
+                visual.innerHTML = `<video src="${data.mediaUrl}" autoplay loop muted playsinline style="max-width:120px;max-height:120px;border-radius:10px;box-shadow:0 2px 8px #b2ebf2;background:#f8eedd;"></video>`;
+                frogIdleMediaFile = data.mediaFile || null;
+                frogIdleTimer = setTimeout(() => {
+                  renderFrogPet(state);
+                }, 10000);
+              } else {
+                // 喂食/逗蛙只播放一次，结束后切回idle
+                visual.innerHTML = `<video id="frog-action-video" src="${data.mediaUrl}" autoplay muted playsinline style="max-width:120px;max-height:120px;border-radius:10px;box-shadow:0 2px 8px #b2ebf2;background:#f8eedd;"></video>`;
+                const v = document.getElementById('frog-action-video');
+                if (v) {
+                  v.onended = () => {
+                    const idleState = { ...state, lastAction: 'idle' };
+                    renderFrogPet(idleState);
+                  };
+                }
+              }
+            } else {
+              visual.textContent = '🐸';
+              if (actionType === 'idle') {
+                frogIdleMediaFile = null;
+                frogIdleTimer = setTimeout(() => {
+                  renderFrogPet(state);
+                }, 10000);
+              }
+            }
+          } catch {
+            visual.textContent = '🐸';
+            if (actionType === 'idle') {
+              frogIdleMediaFile = null;
+              frogIdleTimer = setTimeout(() => {
+                renderFrogPet(state);
+              }, 10000);
+          }
         }
         let desc = [];
         if (state.lastFeedTime) {

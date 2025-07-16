@@ -10,6 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 // 挂载青蛙电子宠物API
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/frog', require('./frog'));
 
 const PRODUCTS_PATH = path.join(__dirname, 'products.json');
